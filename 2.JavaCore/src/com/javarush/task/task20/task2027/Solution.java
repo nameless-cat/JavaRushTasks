@@ -19,21 +19,38 @@ public class Solution
     public static void main(String[] args)
     {
         int[][] crossword = new int[][]{
-                {'f', 'd', 'e', 'r', 'l', 'k'},
-                {'u', 's', 'a', 'm', 'e', 'o'},
-                {'l', 'n', 'g', 'r', 'o', 'v'},
-                {'m', 'l', 'p', 'r', 'r', 'h'},
-                {'p', 'o', 'e', 'e', 'j', 'j'},
-                {'a', 't', 's', 'i', 'l', 's'},
+                {'t', 'r', 'e', 'r', 'l', 'k'},
+                {'s', 's', 'a', 'm', 'e', 'o'},
+                {'e', 'i', 'g', 'r', 'o', 'v'},
+                {'t', 'l', 'p', 'r', 'r', 'h'},
+                {'p', 'o', 'e', 'e', 'i', 'j'},
+                {'a', 't', 's', 'i', 'l', 'g'},
                 {'p', 'r', 'y', 't', 'h', 'x'},
                 {'y', 'w', 'r', 'z', 'v', 'i'},
                 {'q', 'l', 'd', 'a', 'h', 'k'},
-                {'r', 'p', 'g', 'f', 'y', 't'}
+                {'r', 'i', 'g', 'f', 'y', 't'}
         };
 
+
         long start = System.currentTimeMillis();
-        List<Word> words = detectAllWords(crossword, "home", "same", "list", "array");
+        List<Word> words = detectAllWords(crossword, "home", "same", "list", "array", "rig", "test");
         long end = System.currentTimeMillis();
+
+        System.out.println("time: " + (end - start) / 1000 + " s");
+        System.out.println("words: " + words.size());
+
+        for (Word word : words)
+            System.out.println(word);
+
+        int[][] crossword2 = new int[][]{
+                {'e', 'i', 'g', 'r', 'o', 'v'},
+                {'s', 's', 'a', 'm', 'e', 'o'},
+                {'t', 'r', 'e', 'r', 'l', 'k'}
+        };
+
+        start = System.currentTimeMillis();
+        words = detectAllWords(crossword2, "rig", "flag");
+        end = System.currentTimeMillis();
 
         System.out.println("time: " + (end - start) / 1000 + " s");
         System.out.println("words: " + words.size());
@@ -53,6 +70,7 @@ array - (0, 5) - (4, 9)
     {
         crossField = crossword;
         List<Thread> threads = new ArrayList<>();
+        foundedWords = new ArrayList<>();
         boolean stillRunning;
 
         for (String word : words)
@@ -92,7 +110,7 @@ array - (0, 5) - (4, 9)
 
     private static int[][] crossField;
 
-    private static List<Word> foundedWords = new ArrayList<>();
+    private static List<Word> foundedWords;
 
     public static class WordFinder extends Thread
     {
@@ -105,7 +123,7 @@ array - (0, 5) - (4, 9)
             this.asString = word;
         }
 
-        private boolean findWord(int x, int y, boolean straight)
+        private boolean cutWord(int x, int y, boolean straight)
         {
             int iFrom = x - 1, iTo = x + 1, jFrom = y - 1, jTo = y + 1;
 
@@ -142,7 +160,7 @@ array - (0, 5) - (4, 9)
 
             for (int k = 1; k < asChar.length; k++)
             {
-                int index = straight ? 0 + k : asChar.length - 1 - k;
+                int index = straight ? k : asChar.length - 1 - k;
                 i += vectorI;
                 j += vectorJ;
 
@@ -182,6 +200,26 @@ array - (0, 5) - (4, 9)
             return true;
         }
 
+        private boolean alreadyFounded(int i, int j)
+        {
+            List<Word> words = new ArrayList<>(foundedWords);
+
+            for (Word nextWord : words)
+            {
+                int[] wordEdge = nextWord.getStartPoint();
+
+                if (wordEdge[0] == i && wordEdge[1] == j)
+                    return true;
+
+                wordEdge = nextWord.getEndPoint();
+
+                if (wordEdge[0] == i && wordEdge[1] == j)
+                    return true;
+            }
+
+            return false;
+        }
+
         @Override
         public void run()
         {
@@ -201,15 +239,17 @@ array - (0, 5) - (4, 9)
                         if (nextChar == first)
                             straight = true;
 
-                        if (!findWord(i, j, straight))
+                        if (alreadyFounded(i, j))
                             continue;
-                        else
+
+                        if (cutWord(i, j, straight))
                         {
                             synchronized (Solution.class)
                             {
                                 foundedWords.add(word);
                             }
-                            return;
+                            // обновляем ссылку на объект, чтобы в списке денные не дублировались
+                            this.word = new Word(asString);
                         }
                     }
                 }
@@ -246,6 +286,16 @@ array - (0, 5) - (4, 9)
         {
             endX = i;
             endY = j;
+        }
+
+        public int[] getStartPoint()
+        {
+            return new int[] {startY, startX};
+        }
+
+        public int[] getEndPoint()
+        {
+            return new int[] {endY, endX};
         }
 
         @Override
