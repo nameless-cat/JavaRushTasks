@@ -207,22 +207,11 @@ array - (0, 5) - (4, 9)
         private boolean alreadyFounded(int startX, int startY, int endX, int endY)
         {
             List<Word> words = new ArrayList<>(foundedWords);
+            Word word = new Word(asString);
+            word.setStartPoint(startX, startY);
+            word.setEndPoint(endX, endY);
 
-            for (Word nextWord : words)
-            {
-                if (!nextWord.getWord().equals(asString))
-                    continue;
-
-                int[] startPoint = nextWord.getStartPoint();
-                int[] endPoint = nextWord.getEndPoint();
-                boolean eq1 = Arrays.equals(startPoint, new int[]{startX, startY});
-                boolean eq2 = Arrays.equals(endPoint, new int[]{endX, endY});
-
-                if (eq1 && eq2)
-                    return true;
-            }
-
-            return false;
+            return words.contains(word);
         }
 
         @Override
@@ -309,6 +298,32 @@ array - (0, 5) - (4, 9)
         public String toString()
         {
             return String.format("%s - (%d, %d) - (%d, %d)", text, startX, startY, endX, endY);
+        }
+
+        @Override
+        public boolean equals(Object o)
+        {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Word word = (Word) o;
+
+            if (startX != word.startX) return false;
+            if (startY != word.startY) return false;
+            if (endX != word.endX) return false;
+            if (endY != word.endY) return false;
+            return text != null ? text.equals(word.text) : word.text == null;
+        }
+
+        @Override
+        public int hashCode()
+        {
+            int result = text != null ? text.hashCode() : 0;
+            result = 31 * result + startX;
+            result = 31 * result + startY;
+            result = 31 * result + endX;
+            result = 31 * result + endY;
+            return result;
         }
     }
 }
