@@ -1,9 +1,10 @@
 package com.javarush.task.task20.task2027;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-/* 
+/*
 Кроссворд
 */
 
@@ -31,21 +32,21 @@ public class Solution
                 {'r', 'i', 'g', 'f', 'y', 't'}
         };
 
-
+        List<Word> words;
         long start = System.currentTimeMillis();
-        List<Word> words = detectAllWords(crossword, "home", "same", "list", "array", "rig", "test");
+        //words = detectAllWords(crossword, "home", "same", "list", "array", "rig", "test");
         long end = System.currentTimeMillis();
 
-        System.out.println("time: " + (end - start) / 1000 + " s");
+        /*System.out.println("time: " + (end - start) / 1000 + " s");
         System.out.println("words: " + words.size());
 
         for (Word word : words)
-            System.out.println(word);
+            System.out.println(word);*/
 
         int[][] crossword2 = new int[][]{
-                {'e', 'i', 'g', 'r', 'o', 'v'},
-                {'s', 's', 'a', 'm', 'e', 'o'},
-                {'t', 'r', 'e', 'r', 'l', 'k'}
+                {'r', 'i', 'g', 'r', 'o', 'v'},
+                {'i', 's', 'i', 'm', 'e', 'o'},
+                {'g', 'i', 'r', 'r', 'l', 'k'}
         };
 
         start = System.currentTimeMillis();
@@ -194,26 +195,30 @@ array - (0, 5) - (4, 9)
                 endY = initI;
             }
 
+            if (alreadyFounded(startX, startY, endX, endY))
+                return false;
+
             word.setStartPoint(startX, startY);
             word.setEndPoint(endX, endY);
 
             return true;
         }
 
-        private boolean alreadyFounded(int i, int j)
+        private boolean alreadyFounded(int startX, int startY, int endX, int endY)
         {
             List<Word> words = new ArrayList<>(foundedWords);
 
             for (Word nextWord : words)
             {
-                int[] wordEdge = nextWord.getStartPoint();
+                if (!nextWord.getWord().equals(asString))
+                    continue;
 
-                if (wordEdge[0] == i && wordEdge[1] == j)
-                    return true;
+                int[] startPoint = nextWord.getStartPoint();
+                int[] endPoint = nextWord.getEndPoint();
+                boolean eq1 = Arrays.equals(startPoint, new int[]{startX, startY});
+                boolean eq2 = Arrays.equals(endPoint, new int[]{endX, endY});
 
-                wordEdge = nextWord.getEndPoint();
-
-                if (wordEdge[0] == i && wordEdge[1] == j)
+                if (eq1 && eq2)
                     return true;
             }
 
@@ -238,9 +243,6 @@ array - (0, 5) - (4, 9)
                     {
                         if (nextChar == first)
                             straight = true;
-
-                        if (alreadyFounded(i, j))
-                            continue;
 
                         if (cutWord(i, j, straight))
                         {
@@ -290,12 +292,17 @@ array - (0, 5) - (4, 9)
 
         public int[] getStartPoint()
         {
-            return new int[] {startY, startX};
+            return new int[] {startX, startY};
         }
 
         public int[] getEndPoint()
         {
-            return new int[] {endY, endX};
+            return new int[] {endX, endY};
+        }
+
+        public String getWord()
+        {
+            return text;
         }
 
         @Override
